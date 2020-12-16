@@ -1,115 +1,42 @@
-//ruta api/alumnos
-
 const Router = require('express');
-const conString = require('../database/config');
-const sql = require('mssql');
+const { check } = require('express-validator');
+const { validarCampos } = require('../bml/middlewares/validar-campos');
+const { getAlumnos, getAlumno, addAlumno, updateAlumno, deleteAlumno } = require('../bml/controllers/alumnos');
+const { validarJWT } = require('../bml/middlewares/validar-jwt');
 
 const router = Router();
 
-//getall GET
-router.get('/', (req, res) => {
-    sql.on('error', err => {
-        console.log(err);
-        res.json(err);
-    });
-    sql.connect(conString).then(pool => {
-        return pool.request()
-            .execute('stp_alumnos_getall');
-    }).then(result => {
-        res.json(result.recordset);
-    }).catch(err => {
-        res.json(err);
-    });
-});
+//GetAll
+router.get('/', getAlumnos);
 
-//getbyid GET
-router.get('/:id', (req, res) => {
-    sql.on('error', err => {
-        console.log(err);
-        res.json(err);
-    });
-    sql.connect(conString).then(pool => {
-        return pool.request()
-            .input('idAlumno', req.params.id)
-            .execute('stp_alumnos_getbyid');
-    }).then(result => {
-        res.json(result.recordset[0]);
-    }).catch(err => {
-        res.json(err);
-    });
+//Getbyid
+router.get('/:id', getAlumno);
 
-});
+//Add
+router.post('/', [
 
-//add POST
-router.post('/', (req, res) => {
-    sql.on('error', err => {
-        console.log(err);
-        res.json(err);
-    });
-    sql.connect(conString).then(pool => {
-        return pool.request()
-            .input('nombre', req.body.nombre)
-            .input('edad', req.body.edad)
-            .input('sexo', req.body.sexo)
-            .input('semestre', req.body.semestre)
-            .input('carrera', req.body.carrera)
-            .execute('stp_alumnos_add');
-    }).then(result => {
-        res.status(201).json({
-            status: "ok",
-            msg: "Alumno agregado correctamente"
-        })
-    }).catch(err => {
-        res.json(err);
-    });
+        check('nombre', 'El nombre es requerido').not().isEmpty(),
+        check('edad', 'La edad es requerida').not().isEmpty(),
+        check('sexo', 'El sexo es requerido').not().isEmpty(),
+        check('semestre', 'El semestre es requerido').not().isEmpty(),
+        check('carrera', 'La carrera es requerida').not().isEmpty(),
+        validarCampos
+    ],
+    addAlumno);
 
-});
+//Update
+router.put('/:id', [
 
-//update PUT
-router.put('/:id', (req, res) => {
-    sql.on('error', err => {
-        console.log(err);
-        res.json(err);
-    });
-    sql.connect(conString).then(pool => {
-        return pool.request()
-            .input('idAlumno', req.params.id)
-            .input('nombre', req.body.nombre)
-            .input('edad', req.body.edad)
-            .input('sexo', req.body.sexo)
-            .input('semestre', req.body.semestre)
-            .input('carrera', req.body.carrera)
-            .execute('stp_alumnos_update');
-    }).then(result => {
-        res.status(201).json({
-            status: "ok",
-            msg: "Alumno actualizado correctamente"
-        })
-    }).catch(err => {
-        res.json(err);
-    });
+        check('nombre', 'El nombre es requerido').not().isEmpty(),
+        check('edad', 'La edad es requerida').not().isEmpty(),
+        check('sexo', 'El sexo es requerido').not().isEmpty(),
+        check('semestre', 'El semestre es requerido').not().isEmpty(),
+        check('carrera', 'La carrera  es requerida').not().isEmpty(),
+        validarCampos
+    ],
+    updateAlumno);
 
-});
-
-//delete DELETE
-router.delete('/:id', (req, res) => {
-    sql.on('error', err => {
-        console.log(err);
-        res.json(err);
-    });
-    sql.connect(conString).then(pool => {
-        return pool.request()
-            .input('idAlumno', req.params.id)
-            .execute('stp_alumnos_delete');
-    }).then(result => {
-        res.status(201).json({
-            status: "ok",
-            msg: "Alumno eliminado correctamente"
-        })
-    }).catch(err => {
-        res.json(err);
-    });
-
-});
+//Delete
+router.delete('/:id', deleteAlumno);
 
 module.exports = router;
